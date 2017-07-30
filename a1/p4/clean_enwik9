@@ -1,0 +1,6 @@
+echo "Extracting text from enwik9 dump..."
+python WikiExtractor.py enwik9 -o - -b 5G -q --json > extractor_dump.json
+
+echo "Cleaning extracted text..."
+python clean_data.py
+rm extractor_dump.json

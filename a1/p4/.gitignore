@@ -1,0 +1,6 @@
+# tf directories
+improved_graph/
+processed/
+
+# data files
+enwik9*
