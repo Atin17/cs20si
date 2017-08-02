@@ -1,0 +1,11 @@
+# model data
+checkpoints/
+graphs/
+outputs/
+
+# vgg weights
+imagenet-vgg-verydeep-19.mat
+
+# resized input images
+content/resized_*
+styles/resized_*

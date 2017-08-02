@@ -27,6 +27,9 @@ IMAGE_HEIGHT = 250
 IMAGE_WIDTH = 333
 NOISE_RATIO = 0.6 # percentage of weight of the noise for intermixing with the content image
 
+CONTENT_WEIGHT = 0.01
+STYLE_WEIGHT = 1
+
 # Layers used for style features. You can change this.
 STYLE_LAYERS = ['conv1_1', 'conv2_1', 'conv3_1', 'conv4_1', 'conv5_1']
 W = [0.5, 1.0, 1.5, 3.0, 4.0] # give more weights to deeper layers.
@@ -65,13 +68,14 @@ def _create_content_loss(p, f):
         the content loss
 
     """
-    pass
+    return 1 / (4. * p.size) * tf.reduce_sum(tf.squared_difference(f, p))
 
 def _gram_matrix(F, N, M):
     """ Create and return the gram matrix for tensor F
         Hint: you'll first have to reshape F
     """
-    pass
+    F = tf.reshape(F, (M, N))
+    return tf.matmul(tf.transpose(F), F)
 
 def _single_style_loss(a, g):
     """ Calculate the style loss at a certain layer
@@ -85,7 +89,12 @@ def _single_style_loss(a, g):
         2. we'll use the same coefficient for style loss as in the paper
         3. a and g are feature representation, not gram matrices
     """
-    pass
+    n = a.shape[3]
+    m = a.shape[1] * a.shape[2]
+
+    a = _gram_matrix(a, n, m)
+    g = _gram_matrix(g, n, m)
+    return 1 / (2. * n * m)**2 * tf.reduce_sum(tf.squared_difference(g, a))
 
 def _create_style_loss(A, model):
     """ Return the total style loss
@@ -95,7 +104,10 @@ def _create_style_loss(A, model):
     
     ###############################
     ## TO DO: return total style loss
-    pass
+    # come back to this line and see what changes in the
+    # graph if I explicitly state these as tf ops i.e. replace
+    # sum with tf.reduce_sum or some other operation
+    return sum(W[i] * E[i] for i in range(n_layers))
     ###############################
 
 def _create_losses(model, input_image, content_image, style_image):
@@ -113,7 +125,7 @@ def _create_losses(model, input_image, content_image, style_image):
         ##########################################
         ## TO DO: create total loss. 
         ## Hint: don't forget the content loss and style loss weights
-        
+        total_loss = CONTENT_WEIGHT * content_loss + STYLE_WEIGHT * style_loss
         ##########################################
 
     return content_loss, style_loss, total_loss
@@ -122,7 +134,11 @@ def _create_summary(model):
     """ Create summary ops necessary
         Hint: don't forget to merge them
     """
-    pass
+    with tf.name_scope('summaries'):
+        tf.summary.scalar('content loss', model['content_loss'])
+        tf.summary.scalar('style loss', model['style_loss'])
+        tf.summary.scalar('total loss', model['total_loss'])
+        return tf.summary.merge_all()
 
 def train(model, generated_image, initial_image):
     """ Train your model.
@@ -135,6 +151,9 @@ def train(model, generated_image, initial_image):
         ## TO DO: 
         ## 1. initialize your variables
         ## 2. create writer to write your graph
+        saver = tf.train.Saver()
+        sess.run(tf.global_variables_initializer())
+        writer = tf.summary.FileWriter('graphs', sess.graph)
         ###############################
         sess.run(generated_image.assign(initial_image))
         ckpt = tf.train.get_checkpoint_state(os.path.dirname('checkpoints/checkpoint'))
@@ -153,7 +172,7 @@ def train(model, generated_image, initial_image):
             if (index + 1) % skip_step == 0:
                 ###############################
                 ## TO DO: obtain generated image and loss
-
+                gen_image, total_loss, summary = sess.run([generated_image, model['total_loss'], model['summary_op']])
                 ###############################
                 gen_image = gen_image + MEAN_PIXELS
                 writer.add_summary(summary, global_step=index)
@@ -189,7 +208,7 @@ def main():
                                                     input_image, content_image, style_image)
     ###############################
     ## TO DO: create optimizer
-    ## model['optimizer'] = ...
+    model['optimizer'] = tf.train.AdamOptimizer(LR).minimize(model['total_loss'], global_step=model['global_step'])
     ###############################
     model['summary_op'] = _create_summary(model)
 
