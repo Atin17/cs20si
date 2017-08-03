@@ -68,7 +68,8 @@ def _create_content_loss(p, f):
         the content loss
 
     """
-    return 1 / (4. * p.size) * tf.reduce_sum(tf.squared_difference(f, p))
+    with tf.name_scope('content_loss'):
+        return 1 / (4. * p.size) * tf.reduce_sum(tf.squared_difference(f, p))
 
 def _gram_matrix(F, N, M):
     """ Create and return the gram matrix for tensor F
@@ -99,19 +100,21 @@ def _single_style_loss(a, g):
 def _create_style_loss(A, model):
     """ Return the total style loss
     """
-    n_layers = len(STYLE_LAYERS)
-    E = [_single_style_loss(A[i], model[STYLE_LAYERS[i]]) for i in range(n_layers)]
+    with tf.name_scope('single_style_loss'):
+        n_layers = len(STYLE_LAYERS)
+        E = [_single_style_loss(A[i], model[STYLE_LAYERS[i]]) for i in range(n_layers)]
     
     ###############################
     ## TO DO: return total style loss
     # come back to this line and see what changes in the
     # graph if I explicitly state these as tf ops i.e. replace
     # sum with tf.reduce_sum or some other operation
-    return sum(W[i] * E[i] for i in range(n_layers))
+    with tf.name_scope('style_loss'):
+        return sum(W[i] * E[i] for i in range(n_layers))
     ###############################
 
 def _create_losses(model, input_image, content_image, style_image):
-    with tf.variable_scope('loss') as scope:
+    with tf.name_scope('loss'):
         with tf.Session() as sess:
             sess.run(input_image.assign(content_image)) # assign content image to the input variable
             p = sess.run(model[CONTENT_LAYER])
@@ -151,7 +154,6 @@ def train(model, generated_image, initial_image):
         ## TO DO: 
         ## 1. initialize your variables
         ## 2. create writer to write your graph
-        saver = tf.train.Saver()
         sess.run(tf.global_variables_initializer())
         writer = tf.summary.FileWriter('graphs', sess.graph)
         ###############################
@@ -188,7 +190,7 @@ def train(model, generated_image, initial_image):
                     saver.save(sess, 'checkpoints/style_transfer', index)
 
 def main():
-    with tf.variable_scope('input') as scope:
+    with tf.name_scope('input'):
         # use variable instead of placeholder because we're training the intial image to make it
         # look like both the content image and the style image
         input_image = tf.Variable(np.zeros([1, IMAGE_HEIGHT, IMAGE_WIDTH, 3]), dtype=tf.float32)
