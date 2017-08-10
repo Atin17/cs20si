@@ -15,8 +15,10 @@ This file contains the hyperparameters for the model.
 See readme.md for instruction on how to run the starter code.
 """
 
+import os
+
 # parameters for processing the dataset
-DATA_PATH = '/Users/Chip/data/cornell movie-dialogs corpus'
+DATA_PATH = os.path.join(os.getcwd(), 'data/cornell movie-dialogs corpus')
 CONVO_FILE = 'movie_conversations.txt'
 LINE_FILE = 'movie_lines.txt'
 OUTPUT_FILE = 'output_convo.txt'
@@ -58,3 +60,7 @@ LR = 0.5
 MAX_GRAD_NORM = 5.0
 
 NUM_SAMPLES = 512
+ENC_VOCAB = 24452
+DEC_VOCAB = 24652
+ENC_VOCAB = 24451
+DEC_VOCAB = 24613
