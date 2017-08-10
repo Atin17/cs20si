@@ -1,0 +1,13 @@
+# convenience script used to speed up experimentation
+
+# remove the previous experiment's outputs
+rm -rf outputs/*.png
+
+# remove the previous experiment's checkpoints
+rm -rf checkpoints
+
+# remove the previous experiment's graph data
+rm -rf graphs
+
+# run new experiment
+python style_transfer.py

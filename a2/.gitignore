@@ -1,6 +1,8 @@
 # model data
 checkpoints/
 graphs/
+
+# experiment results
 outputs/
 
 # vgg weights
@@ -9,3 +11,5 @@ imagenet-vgg-verydeep-19.mat
 # resized input images
 content/resized_*
 styles/resized_*
+!content/resized_deadpool.jpg
+!styles/resized_guernica.jpg
